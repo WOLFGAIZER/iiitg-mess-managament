@@ -1,8 +1,44 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  password: { type: String, required: true }, // Will be hashed
+  username: { 
+    type: String, 
+    required: true,
+    unique: true 
+  },
+  rollNo: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  contact: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator: function(v) {
+        return /^\d{10}$/.test(v);  // Validates 10-digit phone numbers
+      },
+      message: props => `${props.value} is not a valid phone number!`
+    }
+  },
+  password: { 
+    type: String, 
+    required: true 
+  },
+  role: { 
+    type: String, 
+    enum: ['student', 'admin'], 
+    default: 'student' 
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  otp: {
+    code: String,
+    expiresAt: Date
+  },
   USERID: { type: String, required: true, unique: true }, // Unique user identifier (e.g., roll number)
   course: { 
     type: String, 

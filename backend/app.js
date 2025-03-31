@@ -16,6 +16,7 @@ const qrRoutes = require('./routes/qrRoutes');
 const tokenRoutes = require('./routes/tokenRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const billRoutes = require('./routes/billRoutes');
+const paymentRoutes = require('./routes/payment');
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +58,7 @@ app.use('/api/qrcodes', qrRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/bills', billRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
