@@ -1,22 +1,17 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const Card = ({ title, color, icon }) => {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate(`/page/${encodeURIComponent(title)}`); // Navigate to dynamic page
-  };
-
+const Card = ({ title, color, icon, path }) => {
   return (
-    <div
-      className="p-4 rounded-xl shadow-md text-white flex items-center justify-center cursor-pointer"
-      style={{ backgroundColor: color }}
-      onClick={handleClick}
-    >
-      <span className="text-2xl mr-2">{icon}</span>
-      <h2 className="text-lg font-semibold">{title}</h2>
-    </div>
+    <Link to={path}>
+      <div
+        className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-center transition-all hover:shadow-lg"
+        style={{ borderTop: `4px solid ${color}` }}
+      >
+        <span className="text-3xl mb-2">{icon}</span>
+        <h3 className="text-lg font-medium text-gray-900 text-center">{title}</h3>
+      </div>
+    </Link>
   );
 };
 

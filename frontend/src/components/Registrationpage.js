@@ -33,13 +33,13 @@ const Registration = () => {
           <div className="mt-4 flex space-x-4">
             <button
               onClick={() => navigate("/login")}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
             >
               Login
             </button>
             <button
               onClick={() => navigate("/signup")}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow"
+              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600"
             >
               Sign Up
             </button>
