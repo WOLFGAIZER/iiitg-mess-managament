@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 const Registration = () => {
   const navigate = useNavigate();
 
+  const handleSignUp = () => {
+    navigate("/signup"); // Navigate to UserDetailsPage
+  };
+
+  const handleLogin = () => {
+    navigate("/signin"); // Navigate to Login page
+  };
+
   return (
     <div
       className="flex items-center justify-center min-h-screen bg-cover bg-center"

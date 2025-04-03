@@ -20,7 +20,7 @@ const UserDetailsPage = () => {
     e.preventDefault();
     // Store details (in localStorage or state management)
     localStorage.setItem("userDetails", JSON.stringify(userDetails));
-    navigate("/otp-verification"); // Navigate to OTP page
+    navigate("/verify-otp"); // matching OTP verification
   };
 
   return (
