@@ -28,18 +28,25 @@ const AuthProvider = ({ children }) => {
     );
   }, [token]);
 
-  // Check auth status on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const storedToken = localStorage.getItem("token");
+        console.log("Checking auth, stored token:", storedToken); // Debug
         if (storedToken) {
           setToken(storedToken);
-          // Fetch user profile to validate token
-          const res = await api.get("/users/profile");
-          setUser(res.data);
+          try {
+            const res = await api.get("/users/profile");
+            console.log("Profile response:", res.data); // Debug
+            setUser(res.data);
+          } catch (profileErr) {
+            console.error("Profile fetch failed:", profileErr.message); // Debug
+            // Don’t clear token on profile failure; keep it for manual verification
+            setError("Couldn’t fetch profile, but token retained.");
+          }
         }
       } catch (err) {
+        console.error("Auth check failed:", err.message); // Debug
         setError("Failed to restore session. Please log in again.");
         setToken(null);
         localStorage.removeItem("token");
@@ -56,11 +63,13 @@ const AuthProvider = ({ children }) => {
       setLoading(true);
       const res = await api.post("/users/login", credentials);
       const { token, user } = res.data;
+      console.log("Login success, token:", token, "user:", user);
       setToken(token);
       setUser(user);
       localStorage.setItem("token", token);
       setError(null);
     } catch (err) {
+      console.error("Login failed:", err.response?.data?.message || err.message)
       setError(err.response?.data?.message || "Login failed");
       throw err;
     } finally {

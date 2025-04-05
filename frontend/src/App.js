@@ -12,7 +12,8 @@ import UserDetailsPage from "./components/UserDetailsPage"; // Add this import
 import OTPVerification from "./components/OTPVerification";
 import OTPVerificationPage from "./components/OTPVerificationPage"; // Add this import for the 4-digit OTP page
 import SignUp from "./components/SignUp"; // Add this import
-import SignIn from "./components/SignIn"; // Add this impor
+import SignIn from "./components/SignIn"; // Add this import
+import Dashboard from "./components/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthProvider from "./context/AuthContext";
 
@@ -29,6 +30,10 @@ function App() {
         <Route path="/otp-verification" element={<OTPVerification />} />
         <Route path="/verify-otp" element={<OTPVerificationPage />} /> {/* Add this for 4-digit OTP */}
         <Route path="/verify-login-otp" element={<OTPVerificationPage />} />
+        <Route
+          path="/dashboard"
+          element={<ProtectedRoute><Dashboard /></ProtectedRoute>} // Add this route
+        />
         <Route
           path="/view-profile"
           element={<ProtectedRoute><ViewProfile /></ProtectedRoute>}

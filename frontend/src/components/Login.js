@@ -11,9 +11,12 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log("Attempting login with:", { username, password }); // Debug
       await login({ username, password });
-      navigate("/view-profile"); // Redirect to ViewProfile after login
+      console.log("Login successful, navigating to /dashboard"); // Debug
+      navigate("/dashboard"); // Changed to /dashboard
     } catch (err) {
+      console.error("Login error:", err); // Debug
       // Error is handled by AuthContext
     }
   };
