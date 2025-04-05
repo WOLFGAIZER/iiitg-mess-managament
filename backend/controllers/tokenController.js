@@ -1,5 +1,6 @@
 const { body, validationResult } = require('express-validator');
 const Token = require('../models/Token');
+const { v4: uuidv4 } = require('uuid');
 
 const tokenValidationRules = [
   body('rollNo').notEmpty().withMessage('Roll number is required'),
@@ -55,5 +56,31 @@ const getAllTokens = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching tokens', error: error.message });
   }
 };
+const buyToken = async (req, res) => {
+  try {
+    const { rollno, price } = req.body; // Get roll number and price
 
-module.exports = { createToken, getTokensByUser, validateToken, getAllTokens };
+    if (!rollno || !price) {
+      return res.status(400).json({ success: false, message: 'Roll number and price are required' });
+    }
+
+    // Create new token
+    const newToken = new Token({
+      tokenID: uuidv4(), // Generate unique token ID
+      rollno,
+      price,
+      isActive: true,
+      date: new Date() // Server-generated date
+    });
+
+    // Save token to database
+    await newToken.save();
+
+    res.status(201).json({ success: true, message: 'Token purchased successfully', token: newToken });
+  } catch (error) {
+    console.error('[ERROR] Buying Token:', error);
+    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};
+
+module.exports = { createToken, getTokensByUser, validateToken, getAllTokens,buyToken };
