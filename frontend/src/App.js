@@ -32,7 +32,7 @@ function App() {
         <Route path="/verify-login-otp" element={<OTPVerificationPage />} />
         <Route
           path="/dashboard"
-          element={<ProtectedRoute><Dashboard /></ProtectedRoute>} // Add this route
+          element={<Dashboard />} // Add this route
         />
         <Route
           path="/view-profile"

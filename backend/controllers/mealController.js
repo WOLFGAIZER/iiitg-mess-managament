@@ -9,7 +9,7 @@ const mealValidationRules = [
 
 const getMeals = async (req, res) => {
   try {
-    const meals = await Meal.find();
+    const meals = await Meal.find().sort('date');
     res.status(200).json({ success: true, data: meals });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching meals', error: error.message });

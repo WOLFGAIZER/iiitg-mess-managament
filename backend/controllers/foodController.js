@@ -15,6 +15,16 @@ const getAllFood = async (req, res) => {
   }
 };
 
+// Get full week's menu
+const getWeeklyMenu = async (req, res) => {
+  try {
+    const foods = await Food.find().sort({ day: 1 }).populate('createdBy', 'username'); // Sort by day
+    res.status(200).json({ success: true, data: foods });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching weekly menu', error: error.message });
+  }
+};
+
 const createFood = [
   ...foodValidationRules,
   async (req, res) => {
@@ -34,4 +44,19 @@ const createFood = [
   },
 ];
 
-module.exports = { getAllFood, createFood };
+const getTodaysMenu = async (req, res) => {
+  try {
+    const today = new Date().toLocaleString('en-US', { weekday: 'long' }); // Get current day name
+    const food = await Food.findOne({ day: today }).populate('createdBy', 'username');
+
+    if (!food) {
+      return res.status(404).json({ success: false, message: `No menu found for ${today}` });
+    }
+
+    res.status(200).json({ success: true, data: food });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching today\'s menu', error: error.message });
+  }
+};
+
+module.exports = { getAllFood, createFood, getWeeklyMenu, getTodaysMenu };

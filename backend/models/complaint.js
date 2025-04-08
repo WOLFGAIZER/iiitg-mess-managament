@@ -29,7 +29,7 @@ const complaintSchema = new mongoose.Schema({
   userID: {
     type: String,
     required: [true, 'User ID is required'],
-    index: true // Add index for faster queries
+    index: true // Index for faster queries
   },
   complaintNo: {
     type: String,
@@ -70,14 +70,19 @@ const complaintSchema = new mongoose.Schema({
     default: Date.now
   },
   responses: [responseSchema],
-  attachments: [{
-    fileName: String,
-    fileUrl: String,
-    uploadedAt: {
-      type: Date,
-      default: Date.now
+
+  // Attachments for images
+  imageAttachments: [
+    {
+      fileName: String,
+      fileUrl: String,
+      uploadedAt: {
+        type: Date,
+        default: Date.now
+      }
     }
-  }],
+  ],
+
   assignedTo: {
     type: String,
     default: null
@@ -91,14 +96,14 @@ const complaintSchema = new mongoose.Schema({
   }
 });
 
-// Pre-save middleware to update lastUpdated
-complaintSchema.pre('save', function(next) {
+// Pre-save middleware to update lastUpdated timestamp
+complaintSchema.pre('save', function (next) {
   this.lastUpdated = new Date();
   next();
 });
 
-// Pre-save middleware to generate complaint number
-complaintSchema.pre('save', async function(next) {
+// Pre-save middleware to generate a unique complaint number
+complaintSchema.pre('save', async function (next) {
   if (this.isNew) {
     try {
       const count = await this.constructor.countDocuments();
@@ -111,15 +116,15 @@ complaintSchema.pre('save', async function(next) {
   next();
 });
 
-// Instance method to add response
-complaintSchema.methods.addResponse = function(response) {
+// Instance method to add a response
+complaintSchema.methods.addResponse = function (response) {
   this.responses.push(response);
   this.lastUpdated = new Date();
   return this.save();
 };
 
 // Instance method to update status
-complaintSchema.methods.updateStatus = function(newStatus) {
+complaintSchema.methods.updateStatus = function (newStatus) {
   this.status = newStatus;
   this.lastUpdated = new Date();
   if (newStatus === 'Resolved') {
@@ -128,18 +133,25 @@ complaintSchema.methods.updateStatus = function(newStatus) {
   return this.save();
 };
 
+// Instance method to upload an image
+complaintSchema.methods.uploadImage = function (fileName, fileUrl) {
+  this.imageAttachments.push({ fileName, fileUrl, uploadedAt: new Date() });
+  this.lastUpdated = new Date();
+  return this.save();
+};
+
 // Static method to find complaints by status
-complaintSchema.statics.findByStatus = function(status) {
+complaintSchema.statics.findByStatus = function (status) {
   return this.find({ status }).sort({ timestamp: -1 });
 };
 
 // Static method to find user's complaints
-complaintSchema.statics.findUserComplaints = function(userID) {
+complaintSchema.statics.findUserComplaints = function (userID) {
   return this.find({ userID }).sort({ timestamp: -1 });
 };
 
 // Virtual for time since creation
-complaintSchema.virtual('timeSinceCreation').get(function() {
+complaintSchema.virtual('timeSinceCreation').get(function () {
   return Math.floor((Date.now() - this.timestamp) / 1000 / 60 / 60 / 24);
 });
 

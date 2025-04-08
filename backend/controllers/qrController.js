@@ -16,6 +16,16 @@ const getAllQRCodes = async (req, res) => {
   }
 };
 
+const deleteExpiredQRCodes = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const result = await QR.deleteMany({ expiresAt: { $lt: currentDate } }); // Delete old QR codes
+    res.status(200).json({ success: true, message: 'Expired QR codes deleted', deletedCount: result.deletedCount });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting expired QR codes', error: error.message });
+  }
+};
+
 const createQRCode = [
   ...qrValidationRules,
   async (req, res) => {
@@ -35,4 +45,4 @@ const createQRCode = [
   },
 ];
 
-module.exports = { getAllQRCodes, createQRCode };
+module.exports = { getAllQRCodes, createQRCode, deleteExpiredQRCodes };

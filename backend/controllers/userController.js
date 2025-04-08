@@ -29,6 +29,13 @@ const createUser = [
 
     try {
       const { username, password, USERID, course } = req.body;
+
+      // Check if the USERID already exists
+      const existingUser = await User.findOne({ USERID });
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: 'USERID already registered' });
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new User({ username, password: hashedPassword, USERID, course });
       await newUser.save();
@@ -51,4 +58,47 @@ const createUser = [
   },
 ];
 
-module.exports = { getAllUsers, createUser };
+/**
+ * @desc User Login
+ * @route POST /users/login
+ * @access Public
+ */
+const loginUser = async (req, res) => {
+  const { USERID, password } = req.body;
+
+  try {
+    // Check if user exists
+    const user = await User.findOne({ USERID });
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid USERID or password' });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid USERID or password' });
+    }
+
+    // Generate JWT Token
+    const token = jwt.sign(
+      { id: user._id, USERID: user.USERID },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        username: user.username,
+        USERID: user.USERID,
+        course: user.course,
+      },
+      token
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error logging in', error: error.message });
+  }
+};
+
+module.exports = { getAllUsers, createUser, loginUser };

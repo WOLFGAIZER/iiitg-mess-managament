@@ -14,32 +14,31 @@ const UserInteractionPage = () => {
         </button>
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+       {/* 📌 Action Buttons */}
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Button text="View Profile" icon="👤" color="bg-blue-500" />
-        <Button text="Scan QR Code" icon="📱" color="bg-green-500" />
-        <Button text="Live Bill Tracking" icon="💰" color="bg-yellow-500" />
-        <Button text="Online Mess Cut" icon="✂️" color="bg-red-500" />
-        <Button text="Pay Mess Bill" icon="💳" color="bg-purple-500" />
-        <Button text="Feedback & Complaint" icon="📩" color="bg-orange-500" />
-        <Button text="Votings Page" icon="🗳️" color="bg-indigo-500" />
-      </div>
-
-      {/* Mess Actions */}
-      <div className="mt-8 p-5 bg-red-400 rounded-lg text-white shadow-lg">
-        <h2 className="text-lg font-bold">Mess Actions</h2>
-        <div className="flex justify-center mt-4 gap-6">
-          <button className="bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg shadow-md transition">
-            CLOSE MESS
-          </button>
-          <button className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-lg shadow-md transition">
-            VIEW MENU
-          </button>
-        </div>
+        <Button text="Tokens" icon="🎟️" color="bg-green-500" />
+        <Button text="Food & Menu" icon="📋" color="bg-yellow-500" />
+        <Button text="Feedback & Complaint" icon="✉️" color="bg-orange-500" />
+        <Button text="Voting" icon="✅" color="bg-purple-500" />
       </div>
     </div>
   );
 };
+      {/* Mess Actions */}
+<div className="mt-8 p-5 bg-red-400 rounded-lg text-white shadow-lg">
+  <h2 className="text-lg font-bold">Mess Actions</h2>
+  <div className="flex justify-center mt-4 gap-6">
+    <button className="bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg shadow-md transition">
+      CLOSE MESS
+    </button>
+    <button className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-lg shadow-md transition">
+      VIEW MENU
+    </button>
+  </div>
+</div> 
+
+
 
 // Button Component with Dynamic Color
 const Button = ({ text, icon, color }) => {
