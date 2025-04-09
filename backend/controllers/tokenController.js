@@ -2,16 +2,38 @@ const { body, validationResult } = require('express-validator');
 const Token = require('../models/Token');
 const { v4: uuidv4 } = require('uuid');
 
-// Validation rules for token creation
-const tokenValidationRules = [
-  body('rollNo').notEmpty().withMessage('Roll number is required'),
+// Validation rules for token creation (includes numberOfTokens)
+const tokenCreationValidationRules = [
+  body('rollno').notEmpty().withMessage('Roll number is required'),
   body('totalAmount').isNumeric().withMessage('Valid amount required'),
   body('numberOfTokens').isInt({ min: 1 }).withMessage('At least 1 token required'),
 ];
 
-// Create a new token
-const createToken = [
-  ...tokenValidationRules,
+// Validation rules for buying tokens (excludes numberOfTokens)
+const buyTokenValidationRules = [
+  body('rollno').notEmpty().withMessage('Roll number is required'),
+  body('totalAmount').isNumeric().withMessage('Valid amount required'),
+];
+
+//count total tokens
+const countTotalTokens = async (req, res) => {
+  try {
+    const totalTokens = await Token.countDocuments();
+    
+    res.status(200).json({
+      success: true,
+      message: `Total number of tokens: ${totalTokens}`,
+      totalTokens
+    });
+  } catch (error) {
+    console.error('[ERROR] Counting Total Tokens:', error);
+    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};
+
+// Buy a token (User purchases token) - Updates existing token balance
+const buyToken = [
+  ...buyTokenValidationRules,
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -19,15 +41,56 @@ const createToken = [
     }
 
     try {
-      const { rollNo, totalAmount, numberOfTokens } = req.body;
+      const { rollno, totalAmount } = req.body;
+
+      // Find or create a token for the user
+      let token = await Token.findOne({ rollno });
+      if (!token) {
+        token = new Token({
+          tokenID: uuidv4(),
+          rollno,
+          balance: 0, // Initialize balance
+        });
+      }
+
+      // Increment balance (e.g., 10 units = 1 token, adjust ratio as needed)
+      const tokenValue = Math.floor(totalAmount / 10); // Example: 10₹ = 1 token
+      token.balance += tokenValue;
+
+      // Save the updated token
+      await token.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Token balance updated successfully',
+        token: { tokenID: token.tokenID, rollno: token.rollno, balance: token.balance },
+      });
+    } catch (error) {
+      console.error('[ERROR] Buying Token:', error);
+      res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+  },
+];
+
+// Create a new token
+const createToken = [
+  ...tokenCreationValidationRules,
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    try {
+      const { rollno, totalAmount, numberOfTokens } = req.body;
 
       const newToken = new Token({
-        tokenID: uuidv4(), // Generate unique token ID
-        rollNo,
-        totalAmount,
-        numberOfTokens,
+        tokenID: uuidv4(),
+        rollno,
+        price: totalAmount / numberOfTokens, // Price per token
+        balance: totalAmount, // Initial balance based on total amount
         isActive: true,
-        date: new Date(), // Automatically set the date
+        date: new Date(),
       });
 
       await newToken.save();
@@ -42,7 +105,7 @@ const createToken = [
 // Get all tokens for a specific user
 const getTokensByUser = async (req, res) => {
   try {
-    const tokens = await Token.find({ rollNo: req.params.rollNo });
+    const tokens = await Token.find({ rollno: req.params.rollno });
     res.status(200).json({ success: true, data: tokens });
   } catch (error) {
     console.error('[ERROR] Fetching User Tokens:', error);
@@ -75,33 +138,6 @@ const getAllTokens = async (req, res) => {
   }
 };
 
-// Buy a new token (User purchases token)
-const buyToken = async (req, res) => {
-  try {
-    const { rollNo, totalAmount } = req.body; // Ensure consistent field names
-
-    if (!rollNo || !totalAmount) {
-      return res.status(400).json({ success: false, message: 'Roll number and total amount are required' });
-    }
-
-    // Create a new token
-    const newToken = new Token({
-      tokenID: uuidv4(),
-      rollNo,
-      totalAmount,
-      isActive: true,
-      date: new Date(),
-    });
-
-    await newToken.save();
-
-    res.status(201).json({ success: true, message: 'Token purchased successfully', token: newToken });
-  } catch (error) {
-    console.error('[ERROR] Buying Token:', error);
-    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
-  }
-};
-
 // Count tokens purchased on a specific date
 const countTokensByDate = async (req, res) => {
   try {
@@ -111,13 +147,11 @@ const countTokensByDate = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Date is required' });
     }
 
-    // Convert string date to JavaScript Date object
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(startOfDay);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Count tokens within the given date range
     const tokenCount = await Token.countDocuments({
       date: { $gte: startOfDay, $lte: endOfDay },
     });
@@ -137,16 +171,12 @@ const countTokensByDate = async (req, res) => {
 const getTotalEarnings = async (req, res) => {
   try {
     const totalEarnings = await Token.aggregate([
-      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+      { $group: { _id: null, total: { $sum: "$balance" } } }
     ]);
-
-    if (totalEarnings.length === 0) {
-      return res.status(200).json({ success: true, totalEarnings: 0 });
-    }
 
     res.status(200).json({
       success: true,
-      totalEarnings: totalEarnings[0].total,
+      totalEarnings: totalEarnings[0]?.total || 0,
     });
   } catch (error) {
     console.error("[ERROR] Fetching Total Earnings:", error);
@@ -155,4 +185,4 @@ const getTotalEarnings = async (req, res) => {
 };
 
 // Export all functions
-module.exports = { createToken, getTokensByUser, validateToken, getAllTokens, buyToken, getTotalEarnings, countTokensByDate };
+module.exports = { createToken, getTokensByUser, validateToken, getAllTokens, buyToken, getTotalEarnings, countTokensByDate, countTotalTokens };

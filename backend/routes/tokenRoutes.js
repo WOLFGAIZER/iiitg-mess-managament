@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, restrictToAdmin } = require('../middleware/auth');
 const { 
   createToken, 
   getTokensByUser, 
@@ -8,28 +7,32 @@ const {
   getAllTokens,
   buyToken,
   countTokensByDate,
-  getTotalEarnings
+  getTotalEarnings,
+  countTotalTokens
 } = require('../controllers/tokenController');
 
-// Get all tokens (admin only)
-router.get('/', authenticateToken, restrictToAdmin, getAllTokens);
+// Get all tokens (Now open to all)
+router.get('/', getAllTokens);
 
-// Create a new token (admin only)
-router.post('/', authenticateToken, restrictToAdmin, createToken);
+// Create a new token (Now open to all)
+router.post('/', createToken);
 
-// Get tokens by user (authenticated users)
-router.get('/user/:rollNo', authenticateToken, getTokensByUser);
+// Get tokens by user (Now open to all)
+router.get('/user/:rollno', getTokensByUser);
 
-// Validate a token (authenticated users)
-router.get('/validate/:tokenID', authenticateToken, validateToken);
+// Validate a token (Now open to all)
+router.get('/validate/:tokenID', validateToken);
 
-// Buy a token (authenticated users)
-router.post("/buy", authenticateToken, buyToken);
+// Buy a token (Now open to all)
+router.post('/buy', buyToken);
 
-// Count tokens purchased on a specific date (admin only)
-router.get('/count/:date', authenticateToken, restrictToAdmin, countTokensByDate);
+// Count tokens purchased on a specific date (Now open to all)
+router.get('/count/:date', countTokensByDate);
 
-//Get total earnings (FOR ADMINS)
-router.get('/total-earnings', authenticateToken, restrictToAdmin, getTotalEarnings); 
+// Count total tokens (Now open to all)
+router.get('/count-total', countTotalTokens);
+
+// Get total earnings (Now open to all)
+router.get('/total-earnings', getTotalEarnings);
 
 module.exports = router;
