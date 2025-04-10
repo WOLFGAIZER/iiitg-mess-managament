@@ -34,3 +34,19 @@ exports.getReceiptById = async (req, res) => {
         res.status(500).json({ success: false, message: "Error fetching receipt", error: error.message });
     }
 };
+
+// Count total number of receipts
+exports.countTotalReceipts = async (req, res) => {
+  try {
+    const totalReceipts = await Receipt.countDocuments(); // Count all receipts
+
+    res.status(200).json({
+      success: true,
+      message: `Total number of receipts: ${totalReceipts}`,
+      totalReceipts
+    });
+  } catch (error) {
+    console.error('[ERROR] Counting Receipts:', error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};

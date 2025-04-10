@@ -31,7 +31,7 @@ const countTotalTokens = async (req, res) => {
   }
 };
 
-// Buy a token (User purchases token) - Updates existing token balance
+//buy token
 const buyToken = [
   ...buyTokenValidationRules,
   async (req, res) => {
@@ -43,18 +43,21 @@ const buyToken = [
     try {
       const { rollno, totalAmount } = req.body;
 
-      // Find or create a token for the user
+      // Find the existing token for the user
       let token = await Token.findOne({ rollno });
+
       if (!token) {
         token = new Token({
           tokenID: uuidv4(),
           rollno,
-          balance: 0, // Initialize balance
+          price: totalAmount / 130,  // ✅ Ensure `price` is set
+          balance: 0,  // Initialize balance
+          isActive: true
         });
       }
 
-      // Increment balance (e.g., 10 units = 1 token, adjust ratio as needed)
-      const tokenValue = Math.floor(totalAmount / 10); // Example: 10₹ = 1 token
+      // Increment balance (₹10 = 1 token)
+      const tokenValue = Math.floor(totalAmount / 10); 
       token.balance += tokenValue;
 
       // Save the updated token
@@ -62,15 +65,21 @@ const buyToken = [
 
       res.status(200).json({
         success: true,
-        message: 'Token balance updated successfully',
-        token: { tokenID: token.tokenID, rollno: token.rollno, balance: token.balance },
+        message: "Token balance updated successfully",
+        token: {
+          tokenID: token.tokenID,
+          rollno: token.rollno,
+          price: token.price,  // ✅ Ensure price is returned
+          balance: token.balance
+        }
       });
     } catch (error) {
-      console.error('[ERROR] Buying Token:', error);
-      res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+      console.error("[ERROR] Buying Token:", error);
+      res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
   },
 ];
+
 
 // Create a new token
 const createToken = [
@@ -167,6 +176,45 @@ const countTokensByDate = async (req, res) => {
   }
 };
 
+//deduct the token used
+const useToken = async (req, res) => {
+  try {
+    const { rollno, tokensToUse } = req.body;
+
+    // Validate input
+    if (!rollno || !tokensToUse || tokensToUse <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid request parameters" });
+    }
+
+    // Find token record for the user
+    const token = await Token.findOne({ rollno });
+
+    if (!token) {
+      return res.status(404).json({ success: false, message: "User token not found" });
+    }
+
+    // Check if the user has enough tokens
+    if (token.balance < tokensToUse) {
+      return res.status(400).json({ success: false, message: "Not enough tokens available" });
+    }
+
+    // Deduct the tokens
+    token.balance -= tokensToUse;
+
+    // Save the updated token record
+    await token.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Tokens used successfully",
+      remainingBalance: token.balance
+    });
+  } catch (error) {
+    console.error("[ERROR] Using Token:", error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
 // Get total earnings (For Admins)
 const getTotalEarnings = async (req, res) => {
   try {
@@ -184,5 +232,34 @@ const getTotalEarnings = async (req, res) => {
   }
 };
 
+// Count total tokens bought by a specific user (based on rollNo)
+const countTokensByUser = async (req, res) => {
+  try {
+    const { rollno } = req.params;
+
+    // Validate roll number input
+    if (!rollno) {
+      return res.status(400).json({ success: false, message: "Roll number is required" });
+    }
+
+    // Count tokens for the given roll number
+    const totalTokensBought = await Token.aggregate([
+      { $match: { rollno } }, // Filter by roll number
+      { $group: { _id: "$rollno", totalTokens: { $sum: "$balance" } } } // Sum up token balance
+    ]);
+
+    const totalTokens = totalTokensBought.length > 0 ? totalTokensBought[0].totalTokens : 0;
+
+    res.status(200).json({
+      success: true,
+      message: `Total tokens bought by user ${rollno}: ${totalTokens}`,
+      totalTokens
+    });
+  } catch (error) {
+    console.error('[ERROR] Counting User Tokens:', error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
 // Export all functions
-module.exports = { createToken, getTokensByUser, validateToken, getAllTokens, buyToken, getTotalEarnings, countTokensByDate, countTotalTokens };
+module.exports = { createToken, getTokensByUser, validateToken, getAllTokens, buyToken, getTotalEarnings, countTokensByDate, countTotalTokens, countTokensByUser, useToken };

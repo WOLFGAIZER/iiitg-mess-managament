@@ -8,7 +8,9 @@ const {
   buyToken,
   countTokensByDate,
   getTotalEarnings,
-  countTotalTokens
+  countTotalTokens,
+  countTokensByUser,  // ✅ Add this missing function
+  useToken
 } = require('../controllers/tokenController');
 
 // Get all tokens (Now open to all)
@@ -34,5 +36,11 @@ router.get('/count-total', countTotalTokens);
 
 // Get total earnings (Now open to all)
 router.get('/total-earnings', getTotalEarnings);
+
+// Get total tokens bought by a specific user (by roll number)
+router.get('/count-user/:rollno', countTokensByUser); // ✅ Route now works
+
+//count the no. of tokens used and deduce them
+router.post("/use", useToken);
 
 module.exports = router;

@@ -34,8 +34,14 @@ const createFood = [
     }
 
     try {
-      const { day, menu } = req.body;
-      const newFood = new Food({ day, menu, createdBy: req.user.id });
+      const { day, menu, createdBy } = req.body;  // Accept `createdBy` from request body
+
+      const newFood = new Food({ 
+        day, 
+        menu, 
+        createdBy: createdBy || "admin" // Default value if `createdBy` is missing
+      });
+
       await newFood.save();
       res.status(201).json({ success: true, message: 'Food item created', data: newFood });
     } catch (error) {
@@ -43,6 +49,7 @@ const createFood = [
     }
   },
 ];
+
 
 const getTodaysMenu = async (req, res) => {
   try {
@@ -58,5 +65,6 @@ const getTodaysMenu = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching today\'s menu', error: error.message });
   }
 };
+
 
 module.exports = { getAllFood, createFood, getWeeklyMenu, getTodaysMenu };

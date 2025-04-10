@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const tokenSchema = new mongoose.Schema({
   tokenID: { type: String, required: true, unique: true },
-  rollno: { type: String, required: true, unique: true }, // Remove unique constraint
+  rollno: { type: String, required: true }, // Remove unique constraint
   price: { type: Number, required: true },
   balance: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },

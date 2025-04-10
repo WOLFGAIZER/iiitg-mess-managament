@@ -44,7 +44,7 @@ function App() {
         />
         <Route
           path="/food-menu"
-          element={<ProtectedRoute><FoodMenu /></ProtectedRoute>}
+          element={<FoodMenu />}
         />
         <Route
           path="/feedback-complaint"
