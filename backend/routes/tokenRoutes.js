@@ -1,46 +1,38 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const { 
   createToken, 
+  buyToken, 
+  getAllTokens, 
   getTokensByUser, 
-  validateToken,
-  getAllTokens,
-  buyToken,
-  countTokensByDate,
-  getTotalEarnings,
-  countTotalTokens,
-  countTokensByUser,  // ✅ Add this missing function
-  useToken
-} = require('../controllers/tokenController');
+  useToken, 
+  validateToken, 
+  countTotalTokens, 
+  getTotalEarnings 
+} = require("../controllers/tokenController");
 
-// Get all tokens (Now open to all)
-router.get('/', getAllTokens);
+// ✅ Create a token
+router.post("/create", createToken);
 
-// Create a new token (Now open to all)
-router.post('/create', createToken);
+// ✅ Buy a token
+router.post("/buy", buyToken);
 
-// Get tokens by user (Now open to all)
-router.get('/user/:rollno', getTokensByUser);
+// ✅ Get all tokens
+router.get("/", getAllTokens);
 
-// Validate a token (Now open to all)
-router.get('/validate/:tokenID', validateToken);
+// ✅ Get tokens by user roll number
+router.get("/user/:rollno", getTokensByUser);
 
-// Buy a token (Now open to all)
-router.post('/buy', buyToken);
+// ✅ Validate a token
+router.get("/validate/:tokenID", validateToken);
 
-// Count tokens purchased on a specific date (Now open to all)
-router.get('/count/:date', countTokensByDate);
+// ✅ Count total tokens
+router.get("/count-total", countTotalTokens);
 
-// Count total tokens (Now open to all)
-router.get('/count-total', countTotalTokens);
+// ✅ Get total earnings
+router.get("/total-earnings", getTotalEarnings);
 
-// Get total earnings (Now open to all)
-router.get('/total-earnings', getTotalEarnings);
-
-// Get total tokens bought by a specific user (by roll number)
-router.get('/count-user/:rollno', countTokensByUser); // ✅ Route now works
-
-//count the no. of tokens used and deduce them
+// ✅ Use tokens
 router.post("/use", useToken);
 
 module.exports = router;
