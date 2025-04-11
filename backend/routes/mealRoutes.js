@@ -3,9 +3,9 @@ const router = express.Router();
 const { getMeals, createMeal } = require('../controllers/mealController');
 
 // Get all meals (No authentication required)
-router.get('/', getMeals);
+router.get('/meals', getMeals);
 
 // Create a new meal (No authentication required)
-router.post('/', createMeal);
+router.post('/create', createMeal);
 
 module.exports = router;

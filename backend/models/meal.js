@@ -20,7 +20,4 @@ const mealSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-// Compound index to ensure unique meal type per date
-mealSchema.index({ date: 1, mealType: 1 }, { unique: true });
-
 module.exports = mongoose.model('Meal', mealSchema);
