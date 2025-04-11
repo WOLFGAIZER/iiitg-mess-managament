@@ -1,27 +1,36 @@
 const User = require("../models/User");
+const Token = require("../models/Token");
+const { v4: uuidv4 } = require("uuid");
 
-// Create a new user
+//create user
 const createUser = async (req, res) => {
     try {
-        const { username, password, EmailID, course } = req.body;
+        const { username, password, EmailID, course, rollNo } = req.body;
 
-        // Check if the email already exists
-        const existingUser = await User.findOne({ EmailID });
+        // Check if email or roll number already exists
+        const existingUser = await User.findOne({ $or: [{ EmailID }, { rollNo }] });
         if (existingUser) {
-            return res.status(400).json({ success: false, message: "Email already registered" });
+            return res.status(400).json({ success: false, message: "Email or Roll Number already registered" });
         }
 
-        // Create a new user
-        const newUser = new User({ username, password, EmailID, course });
-        await newUser.save();
+        // Ensure USERID is generated
+        const newUser = new User({
+            USERID: uuidv4(),  // Ensure UUID is generated
+            rollNo,
+            username,
+            password,
+            EmailID,
+            course
+        });
 
+        await newUser.save();
         res.status(201).json({ success: true, message: "User created successfully", user: newUser });
     } catch (error) {
         res.status(500).json({ success: false, message: "Error creating user", error: error.message });
     }
 };
 
-// Get all users
+// ✅ Get all users
 const getAllUsers = async (req, res) => {
     try {
         const users = await User.find();
@@ -31,7 +40,7 @@ const getAllUsers = async (req, res) => {
     }
 };
 
-// Get a single user by EmailID
+// ✅ Get a single user by EmailID
 const getUserByEmail = async (req, res) => {
     try {
         const user = await User.findOne({ EmailID: req.params.email });
@@ -44,51 +53,60 @@ const getUserByEmail = async (req, res) => {
     }
 };
 
-// Get a single user by Roll Number
+// ✅ Get a single user by USERID
+const getUserByID = async (req, res) => {
+    try {
+        const user = await User.findOne({ USERID: req.params.userid });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error fetching user", error: error.message });
+    }
+};
+
+// ✅ Get a single user by Roll Number
 const getUserByRollNo = async (req, res) => {
-  try {
-      const user = await User.findOne({ rollNo: req.params.rollno }); // Find user by roll number
-      if (!user) {
-          return res.status(404).json({ success: false, message: "User not found" });
-      }
-      res.status(200).json({ success: true, user });
-  } catch (error) {
-      res.status(500).json({ success: false, message: "Error fetching user", error: error.message });
-  }
+    try {
+        const user = await User.findOne({ rollNo: req.params.rollno });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error fetching user", error: error.message });
+    }
 };
 
-// Fetch token transaction history by Roll Number
+// ✅ Fetch token transaction history by Roll Number
 const getTokenHistoryByRollNo = async (req, res) => {
-  try {
-    const { rollno } = req.params;
+    try {
+        const { rollno } = req.params;
 
-    // Validate roll number input
-    if (!rollno) {
-      return res.status(400).json({ success: false, message: "Roll number is required" });
+        if (!rollno) {
+            return res.status(400).json({ success: false, message: "Roll number is required" });
+        }
+
+        // Find token transactions for given Roll Number
+        const tokenHistory = await Token.find({ rollNo: rollno }).sort({ date: -1 });
+
+        if (tokenHistory.length === 0) {
+            return res.status(404).json({ success: false, message: "No token history found for this user" });
+        }
+
+        res.status(200).json({ success: true, message: `Token history for user ${rollno}`, data: tokenHistory });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error fetching token history", error: error.message });
     }
-
-    // Find all token transactions for the given roll number
-    const tokenHistory = await Token.find({ rollno }).sort({ date: -1 }); // Sort by newest first
-
-    if (tokenHistory.length === 0) {
-      return res.status(404).json({ success: false, message: "No token history found for this roll number" });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: `Token history for user ${rollno}`,
-      data: tokenHistory
-    });
-  } catch (error) {
-    console.error('[ERROR] Fetching Token History:', error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
-  }
 };
 
-// ✅ Export all controller functions correctly
+// ✅ Export all controller functions
 module.exports = {
     createUser,
     getAllUsers,
     getUserByEmail,
-    getUserByRollNo
+    getUserByID,
+    getUserByRollNo,
+    getTokenHistoryByRollNo
 };

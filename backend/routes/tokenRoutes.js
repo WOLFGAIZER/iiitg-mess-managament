@@ -17,7 +17,7 @@ const {
 router.get('/', getAllTokens);
 
 // Create a new token (Now open to all)
-router.post('/', createToken);
+router.post('/create', createToken);
 
 // Get tokens by user (Now open to all)
 router.get('/user/:rollno', getTokensByUser);

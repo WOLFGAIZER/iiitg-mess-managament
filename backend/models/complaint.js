@@ -1,42 +1,16 @@
 const mongoose = require('mongoose');
 
 const responseSchema = new mongoose.Schema({
-  responderName: {
-    type: String,
-    required: true
-  },
-  responseText: {
-    type: String,
-    required: true
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
-  responderRole: {
-    type: String,
-    enum: ['admin', 'staff', 'supervisor'],
-    required: true
-  }
+  responderName: { type: String, required: true },
+  responseText: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now },
+  responderRole: { type: String, enum: ['admin', 'staff', 'supervisor'], required: true }
 });
 
 const complaintSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: [true, 'Username is required'],
-    trim: true
-  },
-  userID: {
-    type: String,
-    required: [true, 'User ID is required'],
-    index: true // Index for faster queries
-  },
-  complaintNo: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true
-  },
+  userID: { type: String, required: false }, // Not required if TokenID is present
+  tokenID: { type: String, required: false }, // Not required if UserID is present
+  complaintNo: { type: String, required: true, unique: true, index: true },
   complaintText: {
     type: String,
     required: [true, 'Complaint text is required'],
@@ -47,7 +21,7 @@ const complaintSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['Academic', 'Infrastructure', 'Hostel', 'Mess', 'Other'],
+    enum: ['academic', 'infrastructure', 'hostel', 'mess', 'other'], // Lowercase
     index: true
   },
   status: {
@@ -61,48 +35,31 @@ const complaintSchema = new mongoose.Schema({
     enum: ['Low', 'Medium', 'High', 'Urgent'],
     default: 'Medium'
   },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
-  lastUpdated: {
-    type: Date,
-    default: Date.now
-  },
+  timestamp: { type: Date, default: Date.now },
+  lastUpdated: { type: Date, default: Date.now },
   responses: [responseSchema],
 
-  // Attachments for images
+  // Attachments for images (Max: 3 images)
   imageAttachments: [
     {
       fileName: String,
       fileUrl: String,
-      uploadedAt: {
-        type: Date,
-        default: Date.now
-      }
+      uploadedAt: { type: Date, default: Date.now }
     }
   ],
 
-  assignedTo: {
-    type: String,
-    default: null
-  },
-  resolvedAt: {
-    type: Date
-  },
-  isAnonymous: {
-    type: Boolean,
-    default: false
-  }
+  assignedTo: { type: String, default: null },
+  resolvedAt: { type: Date },
+  isAnonymous: { type: Boolean, default: false }
 });
 
-// Pre-save middleware to update lastUpdated timestamp
+// Pre-save middleware to update `lastUpdated` timestamp
 complaintSchema.pre('save', function (next) {
   this.lastUpdated = new Date();
   next();
 });
 
-// Pre-save middleware to generate a unique complaint number
+// Unique Complaint Number Generation
 complaintSchema.pre('save', async function (next) {
   if (this.isNew) {
     try {
@@ -116,25 +73,28 @@ complaintSchema.pre('save', async function (next) {
   next();
 });
 
-// Instance method to add a response
+// Add a response to a complaint
 complaintSchema.methods.addResponse = function (response) {
   this.responses.push(response);
   this.lastUpdated = new Date();
   return this.save();
 };
 
-// Instance method to update status
+// Update complaint status
 complaintSchema.methods.updateStatus = function (newStatus) {
-  this.status = newStatus;
-  this.lastUpdated = new Date();
   if (newStatus === 'Resolved') {
     this.resolvedAt = new Date();
   }
+  this.status = newStatus;
+  this.lastUpdated = new Date();
   return this.save();
 };
 
-// Instance method to upload an image
+// Upload an image to complaint (Max 3 images)
 complaintSchema.methods.uploadImage = function (fileName, fileUrl) {
+  if (this.imageAttachments.length >= 3) {
+    throw new Error("Maximum 3 images allowed per complaint");
+  }
   this.imageAttachments.push({ fileName, fileUrl, uploadedAt: new Date() });
   this.lastUpdated = new Date();
   return this.save();
@@ -161,5 +121,4 @@ complaintSchema.index({ userID: 1, timestamp: -1 });
 complaintSchema.index({ status: 1, timestamp: -1 });
 
 const Complaint = mongoose.model('Complaint', complaintSchema);
-
 module.exports = Complaint;
