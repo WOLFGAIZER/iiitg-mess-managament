@@ -143,6 +143,26 @@ const getTotalEarnings = async (req, res) => {
   }
 };
 
+//get tokens by month
+const getTokensByMonth = async (req, res) => {
+  try {
+    const { month } = req.query;
+
+    if (!month) {
+      return res.status(400).json({ success: false, message: "Month query is required" });
+    }
+
+    const tokens = await Token.find({ month });
+
+    const totalBill = tokens.reduce((sum, token) => sum + token.price * token.balance, 0);
+
+    res.status(200).json({ success: true, tokens, totalBill });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+
 // ✅ Export controllers
 module.exports = { 
   createToken, 
@@ -152,5 +172,6 @@ module.exports = {
   useToken, 
   validateToken, 
   countTotalTokens, 
-  getTotalEarnings 
+  getTotalEarnings,
+  getTokensByMonth
 };

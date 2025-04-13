@@ -36,11 +36,11 @@ function App() {
         />
         <Route
           path="/view-profile"
-          element={<ProtectedRoute><ViewProfile /></ProtectedRoute>}
+          element={<ViewProfile />}
         />
         <Route
           path="/tokens"
-          element={<ProtectedRoute><Tokens /></ProtectedRoute>}
+          element={<Tokens />}
         />
         <Route
           path="/food-menu"
@@ -48,7 +48,7 @@ function App() {
         />
         <Route
           path="/feedback-complaint"
-          element={<ProtectedRoute><FeedbackComplaint /></ProtectedRoute>}
+          element={<FeedbackComplaint />}
         />
         <Route
           path="/voting"

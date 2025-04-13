@@ -1,33 +1,46 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const path = require("path"); // For handling file paths
 const {
   getAllComplaints,
   createComplaint,
-  getComplaintsByToken,
   uploadComplaintImage,
-  updateComplaintStatus
-} = require('../controllers/complaintController');
+  getComplaintsByUser,
+  updateComplaintStatus,
+  getComplaintsByToken,
+} = require("../controllers/complaintController");
+const multer = require("multer");
 
-const { authenticateToken, restrictToAdmin } = require('../middleware/auth');
-const multer = require('multer');
+// ✅ Multer Storage Setup for Image Uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/complaintImages/"); // Store images in the 'uploads/complaintImages' folder
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique file name using timestamp
+  },
+});
 
-// Multer setup for handling image uploads
-const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Get all complaints (admin only)
-router.get('/', authenticateToken, restrictToAdmin, getAllComplaints);
+// ✅ **Complaint Routes**
 
-// Create a new complaint (authenticated users)
-router.post('/', authenticateToken, createComplaint);
+// 🟢 Get all complaints (Admin only)
+router.get("/allcomplaints", getAllComplaints);
 
-// Get complaints by tokenID (authenticated users)
-router.get('/token/:tokenID', authenticateToken, getComplaintsByToken);
+// 🟢 Create a new complaint
+router.post("/create", createComplaint);
 
-// Upload an image for a complaint (authenticated users)
-router.post('/upload-image/:complaintID', authenticateToken, uploadComplaintImage);
+// 🟢 Get complaints by User ID
+router.get("/user/:userID", getComplaintsByUser);
 
-// Update complaint status (admin only)
-router.patch('/update-status/:complaintID', authenticateToken, restrictToAdmin, updateComplaintStatus);
+// 🟢 Get complaints by Token ID
+router.get("/token/:tokenID", getComplaintsByToken);
+
+// 🟢 Upload an image for a complaint
+router.post("/upload-image/:complaintNo", uploadComplaintImage); // ✅
+
+// 🟢 Update complaint status (Admin only)
+router.patch("/update-status/:complaintNo", updateComplaintStatus);
 
 module.exports = router;

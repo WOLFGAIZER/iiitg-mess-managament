@@ -8,17 +8,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
-
-// Route imports
-const userRoutes = require('./routes/userRoutes');
-const mealRoutes = require('./routes/mealRoutes');
-const foodRoutes = require('./routes/foodRoutes');
-const qrRoutes = require('./routes/qrRoutes');
-const tokenRoutes = require('./routes/tokenRoutes');
-const complaintRoutes = require('./routes/complaintRoutes');
-const billRoutes = require('./routes/billRoutes');
-const votingRoutes = require('./routes/votingRoutes');
-const receiptRoutes = require('./routes/receiptRoutes'); // ✅ Added receiptRoutes
+const path = require('path'); // ✅ Required to serve static image files
+const razorRoutes = require('./routes/razorRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -26,16 +17,19 @@ dotenv.config();
 // Initialize Express
 const app = express();
 
-// Database connection
+// Connect to MongoDB
 connectDB();
 
-// Security Middleware
-app.use(helmet()); // Secure headers
-app.use(mongoSanitize()); // Prevent NoSQL injection
-app.use(hpp()); // Prevent HTTP parameter pollution
-app.use(cookieParser()); // Parse cookies
+// ✅ Static folder for image serving (important for frontend to display images)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Rate limiting (100 requests per 15 minutes)
+// Security Middlewares
+app.use(helmet());
+app.use(mongoSanitize());
+app.use(hpp());
+app.use(cookieParser());
+
+// Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -43,27 +37,28 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// CORS configuration
+// Enable CORS
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 
-// Body parser
+// Body Parser
 app.use(express.json({ limit: '10kb' }));
 
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/meals', mealRoutes);
-app.use('/api/foods', foodRoutes);
-app.use('/api/qrcodes', qrRoutes);
-app.use('/api/tokens', tokenRoutes);
-app.use('/api/complaints', complaintRoutes);
-app.use('/api/bills', billRoutes);
-app.use('/api/voting', votingRoutes);
-app.use('/api/receipts', receiptRoutes); // ✅ Now included in the routes
+// ✅ Routes
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/meals', require('./routes/mealRoutes'));
+app.use('/api/foods', require('./routes/foodRoutes'));
+app.use('/api/qrcodes', require('./routes/qrRoutes'));
+app.use('/api/tokens', require('./routes/tokenRoutes'));
+app.use('/api/complaints', require('./routes/complaintRoutes'));
+app.use('/api/bills', require('./routes/billRoutes'));
+app.use('/api/voting', require('./routes/votingRoutes'));
+app.use('/api/receipts', require('./routes/receiptRoutes'));
+app.use('/api/payment', paymentRoutes);
 
-// Health check endpoint
+// ✅ Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
@@ -72,12 +67,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Welcome route
+// ✅ Root route
 app.get('/', (req, res) => {
   res.send('Welcome to the IIITG Mess Management Backend API');
 });
 
-// 404 Handler
+// ✅ 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -85,22 +80,19 @@ app.use('*', (req, res) => {
   });
 });
 
-// Global error handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error('[ERROR]', err.stack);
-  
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  
-  res.status(statusCode).json({
+
+  res.status(err.statusCode || 500).json({
     success: false,
-    message,
+    message: err.message || 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
-// Server setup
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });

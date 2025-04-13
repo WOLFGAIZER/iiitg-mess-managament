@@ -8,7 +8,8 @@ const tokenSchema = new mongoose.Schema({
   balance: { type: Number, default: 0 }, // Number of tokens user has
   isActive: { type: Boolean, default: true }, // Token status
   date: { type: Date, default: Date.now }, // Token creation date
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  month: { type: String, required: true }
 });
 
 module.exports = mongoose.model("Token", tokenSchema);

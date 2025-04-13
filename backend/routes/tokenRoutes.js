@@ -8,7 +8,8 @@ const {
   useToken, 
   validateToken, 
   countTotalTokens, 
-  getTotalEarnings 
+  getTotalEarnings,
+  getTokensByMonth
 } = require("../controllers/tokenController");
 
 // ✅ Create a token
@@ -31,6 +32,8 @@ router.get("/count-total", countTotalTokens);
 
 // ✅ Get total earnings
 router.get("/total-earnings", getTotalEarnings);
+
+router.get("/tokens",  getTokensByMonth);
 
 // ✅ Use tokens
 router.post("/use", useToken);
